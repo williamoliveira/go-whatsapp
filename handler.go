@@ -101,6 +101,11 @@ type RawMessageHandler interface {
 	HandleRawMessage(message *proto.WebMessageInfo)
 }
 
+type RawNodeHandler interface {
+	Handler
+	HandleRawNode(node *binary.Node)
+}
+
 /**
 The ContactListHandler interface needs to be implemented to applky custom actions to contact lists dispatched by the dispatcher.
 */
@@ -257,6 +262,16 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 				}
 			}
 		}
+	case *binary.Node:
+		for _, h := range handlers {
+			if x, ok := h.(RawNodeHandler); ok {
+				if wac.shouldCallSynchronously(h) {
+					x.HandleRawNode(m)
+				} else {
+					go x.HandleRawNode(m)
+				}
+			}
+		}
 	}
 
 }
@@ -340,6 +355,8 @@ func (wac *Conn) dispatch(msg interface{}) {
 						wac.handle(ParseProtoMessage(v))
 					}
 				}
+			} else {
+				wac.handle(message)
 			}
 		} else if message.Description == "response" && message.Attributes["type"] == "contacts" {
 			wac.updateContacts(message.Content)
@@ -347,6 +364,8 @@ func (wac *Conn) dispatch(msg interface{}) {
 		} else if message.Description == "response" && message.Attributes["type"] == "chat" {
 			wac.updateChats(message.Content)
 			wac.handleChats(message.Content)
+		} else {
+			wac.handle(message)
 		}
 	case error:
 		wac.handle(message)
