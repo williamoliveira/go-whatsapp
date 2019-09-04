@@ -13,7 +13,7 @@ type MessageOffsetInfo struct {
 	FirstMessageOwner bool
 }
 
-func decodeMessages(n *binary.Node) []*proto.WebMessageInfo {
+func DecodeMessages(n *binary.Node) []*proto.WebMessageInfo {
 
 	var messages = make([]*proto.WebMessageInfo, 0)
 
@@ -59,7 +59,7 @@ func (wac *Conn) LoadChatMessages(jid string, count int, messageId string, owner
 		return err
 	}
 
-	for _, msg := range decodeMessages(node) {
+	for _, msg := range DecodeMessages(node) {
 		wac.handleWithCustomHandlers(ParseProtoMessage(msg), handlers)
 		wac.handleWithCustomHandlers(msg, handlers)
 	}
@@ -91,7 +91,7 @@ func (wac *Conn) LoadFullChatHistory(jid string, chunkSize int,
 			wac.handleWithCustomHandlers(err, handlers)
 		} else {
 
-			msgs := decodeMessages(node)
+			msgs := DecodeMessages(node)
 			for _, msg := range msgs {
 				wac.handleWithCustomHandlers(ParseProtoMessage(msg), handlers)
 				wac.handleWithCustomHandlers(msg, handlers)
@@ -159,7 +159,7 @@ func (wac *Conn) LoadFullChatHistoryAfter(jid string, messageId string, chunkSiz
 			wac.handleWithCustomHandlers(err, handlers)
 		} else {
 
-			msgs := decodeMessages(node)
+			msgs := DecodeMessages(node)
 			for _, msg := range msgs {
 				wac.handleWithCustomHandlers(ParseProtoMessage(msg), handlers)
 				wac.handleWithCustomHandlers(msg, handlers)
